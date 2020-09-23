@@ -268,10 +268,14 @@ def autolight(scene):
     """
 
     # create two default point lights
-    lights = [PointLight(), PointLight()]
+    lights = [PointLight() for _ in range(2)]
+    # lights = [DirectionalLight() for _ in range(2)]
 
     # create two translation matrices for bounds corners
-    transforms = [transformations.translation_matrix(b)
+    # x0, y0, z0, x1, y1, z1 = scene.bounds.flatten()
+    # transforms = [transformations.translation_matrix(p)
+    #               for p in [np.array([x, y, z]) for x in [x0, x1] for y in [y0, y1] for z in [z0, z1]]]
+    transforms = [transformations.translation_matrix(b) @ np.diag([-1, -1, -1, 1])
                   for b in scene.bounds]
 
     return lights, transforms

@@ -818,7 +818,7 @@ class Path(parent.Geometry):
 
         return copied
 
-    def scene(self):
+    def scene(self, **kwargs):
         """
         Get a scene object containing the current Path3D object.
 
@@ -827,7 +827,7 @@ class Path(parent.Geometry):
         scene: trimesh.scene.Scene object containing current path
         """
         from ..scene import Scene
-        scene = Scene(self)
+        scene = Scene(self, **kwargs)
         return scene
 
     def __add__(self, other):

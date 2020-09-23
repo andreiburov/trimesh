@@ -603,7 +603,7 @@ class PointCloud(Geometry3D):
         from . import convex
         return convex.convex_hull(self.vertices)
 
-    def scene(self):
+    def scene(self, **kwargs):
         """
         A scene containing just the PointCloud
 
@@ -613,7 +613,7 @@ class PointCloud(Geometry3D):
           Scene object containing this PointCloud
         """
         from .scene.scene import Scene
-        return Scene(self)
+        return Scene(self, **kwargs)
 
     def show(self, **kwargs):
         """

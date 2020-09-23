@@ -72,8 +72,12 @@ class Scene(Geometry3D):
         self.metadata.update(metadata)
 
         if graph is not None:
-            # if we've been passed a graph override the default
-            self.graph = graph
+            if isinstance(graph, dict):
+                for k, v in graph.items():
+                    self.graph[k] = v
+            else:
+                # if we've been passed a graph override the default
+                self.graph = graph
 
         self.camera = camera
         self.lights = lights

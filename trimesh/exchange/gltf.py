@@ -486,7 +486,7 @@ def _create_gltf_structure(scene,
                 buffer_items=buffer_items)
         elif util.is_instance_named(geometry, "PointCloud"):
             # add PointCloud objects
-            _append_point(
+            _append_pointcloud(
                 points=geometry,
                 name=name,
                 tree=tree,
@@ -781,12 +781,19 @@ def _append_path(path, name, tree, buffer_items):
     # a pyglet vertex list
     vxlist = rendering.path_to_vertexlist(path)
 
+    # tree["meshes"].append({
+    #     "name": name,
+    #     "primitives": [{
+    #         "attributes": {"POSITION": len(tree["accessors"])},
+    #         "mode": 1,  # mode 1 is GL_LINES
+    #         "material": len(tree["materials"])}]})
+    
     tree["meshes"].append({
         "name": name,
         "primitives": [{
             "attributes": {"POSITION": len(tree["accessors"])},
-            "mode": 1,  # mode 1 is GL_LINES
-            "material": len(tree["materials"])}]})
+            "mode": vxlist[1],  # mode 1 is GL_LINES
+            }]})
 
     # if units are defined, store them as an extra:
     # https://github.com/KhronosGroup/glTF/tree/master/extensions
@@ -802,15 +809,92 @@ def _append_path(path, name, tree, buffer_items):
             "byteOffset": 0,
             "max": path.vertices.max(axis=0).tolist(),
             "min": path.vertices.min(axis=0).tolist()})
-
-    # TODO add color support to Path object
+    
     # this is just exporting everying as black
-    tree["materials"].append(_default_material)
+    # tree["materials"].append(_default_material)
 
-    # data is the second value of the fifth field
+    # data is the second value of the fourth field
     # which is a (data type, data) tuple
     buffer_items.append(_byte_pad(
         vxlist[4][1].astype(float32).tobytes()))
+
+    # TODO add color support to Path object
+    tree["meshes"][-1]["primitives"][0]["attributes"][
+        "COLOR_0"] = len(tree["accessors"])
+    # convert color data to bytes
+    color_data = _byte_pad(np.array(vxlist[5][1]).astype(uint8).tobytes())
+    # the vertex color accessor data
+    tree["accessors"].append({
+        "bufferView": len(buffer_items),
+        "componentType": 5121,
+        "normalized": True,
+        "count": vxlist[0],
+        "type": "VEC4",
+        "byteOffset": 0})
+    # the actual color data
+    buffer_items.append(color_data)
+
+
+def _append_pointcloud(points, name, tree, buffer_items):
+    """
+    Append a 2D or 3D path to the scene structure and put the
+    data into buffer_items.
+
+    Parameters
+    -------------
+    path : trimesh.Path2D or trimesh.Path3D
+      Source geometry
+    name : str
+      Name of geometry
+    tree : dict
+      Will be updated with data from path
+    buffer_items
+      Will have buffer appended with path data
+    """
+    
+    # a pyglet vertex list
+    vxlist = rendering.points_to_vertexlist(points.vertices, points.colors)
+    
+    tree["meshes"].append({
+        "name": name,
+        "primitives": [{
+            "attributes": {"POSITION": len(tree["accessors"])},
+            "mode": vxlist[1],  # mode 1 is GL_LINES
+        }]})
+        
+    tree["accessors"].append(
+        {
+            "bufferView": len(buffer_items),
+            "componentType": 5126,
+            "count": vxlist[0],
+            "type": "VEC3",
+            "byteOffset": 0,
+            "max": points.vertices.max(axis=0).tolist(),
+            "min": points.vertices.min(axis=0).tolist()})
+    
+    # this is just exporting everying as black
+    # tree["materials"].append(_default_material)
+    
+    # data is the second value of the fourth field
+    # which is a (data type, data) tuple
+    buffer_items.append(_byte_pad(
+        vxlist[4][1].astype(float32).tobytes()))
+    
+    # TODO add color support to Path object
+    tree["meshes"][-1]["primitives"][0]["attributes"][
+        "COLOR_0"] = len(tree["accessors"])
+    # convert color data to bytes
+    color_data = _byte_pad(np.array(vxlist[5][1]).astype(uint8).tobytes())
+    # the vertex color accessor data
+    tree["accessors"].append({
+        "bufferView": len(buffer_items),
+        "componentType": 5121,
+        "normalized": True,
+        "count": vxlist[0],
+        "type": "VEC4",
+        "byteOffset": 0})
+    # the actual color data
+    buffer_items.append(color_data)
 
     # add color to attributes
     tree["meshes"][-1]["primitives"][0]["attributes"]["COLOR_0"] = len(tree["accessors"])

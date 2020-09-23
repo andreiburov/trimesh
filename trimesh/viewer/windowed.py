@@ -407,7 +407,7 @@ class SceneViewer(pyglet.window.Window):
         # set the width of lines to 4 pixels
         gl.glLineWidth(4)
         # set PointCloud markers to 4 pixels in size
-        gl.glPointSize(4)
+        gl.glPointSize(10)
 
     @staticmethod
     def _gl_enable_lighting(scene):
